@@ -39,7 +39,7 @@ function createTag(teg, Class = '', text = '', style = []) {
 
 const player1 = new CreateSpecificationsPlayer("Scorpion", 100, "http://reactmarathon-api.herokuapp.com/assets/scorpion.gif", ["flamberg", "bastard"]);
 const player2 = new CreateSpecificationsPlayer("Kung Lao", 70, "http://reactmarathon-api.herokuapp.com/assets/liukang.gif", ["claymore"]);
-console.log(player2);
+
 
 function createPlayer({name, hp, img}) {
     const $divParent = createTag('div', `player${playerNumber()}`);
