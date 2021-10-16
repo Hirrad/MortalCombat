@@ -1,42 +1,100 @@
 "use strict";
-const $arenas=document.querySelector('.arenas');
-function createSpecificationsPlayer  (name,hp,img,weapon=[] ){
-    return{name:""+name,
-        hp:+hp,
-        img:""+img,
-        weapon,
-        attack:()=>`${name} Fight...`}
+const $arenas = document.querySelector('.arenas');
+const $buttonRandom = document.querySelector('.random');
+
+// рандомизатор
+function randomInteger(min, max) {
+    // случайное число от min до (max+1)
+    let rand = min + Math.random() * (max + 1 - min);
+    return Math.floor(rand);
 }
-function createTag(teg,Class='', text='',style=[]) {
-    const $div=document.createElement(teg);
-     if(Class!=='' && style!==[]) {
-        $div.className=Class;
+//CreateSpecificationsPlayer создает персонажей, если будем создавать персонажей больше 2, про проще написать массив с
+// параметрами, а потом скормить его этой функции.
+//remnantsOfLife-сколько здоровья осталось, почему и hp и remnantsOfLife, для того чтобы считать
+// процентное соотношение от первоначального
+function CreateSpecificationsPlayer(name, hp, img, weapon = []) {
+    this.name = "" + name;
+    this.hp = +hp;
+    this.img = "" + img;
+    this.weapon = weapon;
+    this.alive = true;
+    this.remnantsOfLife = +hp
 
-       style.forEach((item)=>{
-           return $div.style[item[0]]=item[1];
-       })
+    this.changeHP = (hit=0) => {
+        this.remnantsOfLife = this.remnantsOfLife - hit
+        if (this.remnantsOfLife <= 0) {
+            this.alive = false;
+            this.remnantsOfLife = 0;
+            return;
+        }
+        return this.remnantsOfLife;
+    };
+    this.attack = () => `${name} Fight...`;
+}
 
-        $div.textContent=text
+function createTag(teg, Class = '', text = '', style = []) {
+    const $div = document.createElement(teg);
+    if (Class !== '' && style !== []) {
+        $div.className = Class;
+
+        style.forEach((item) => {
+            return $div.style[item[0]] = item[1];
+        })
+
+        $div.textContent = text
         return $div
     }
 
-    return  $div;
+    return $div;
 }
-const player1=createSpecificationsPlayer("Scorpion",100,"http://reactmarathon-api.herokuapp.com/assets/scorpion.gif",["flamberg","bastard"]);
-const player2=createSpecificationsPlayer("Kung Lao",70,"http://reactmarathon-api.herokuapp.com/assets/liukang.gif",["claymore"]);
-function createPlayer(player,{name,hp,img}) {
-    const $divParent=createTag('div',player);
-    const $divProgressbar=createTag('div',"progressbar ");
-    const $divCharacter=createTag('div',"character ");
-    const $divLite=createTag('div','life ','',[["width","100%"]]);
-    const $img =createTag('img','','','');
-    $img.setAttribute('src',img);
+
+//создаю 2 персонажей, в дальнейшем они будут создаватся по клику на персонажа на экране.
+const player1 = new CreateSpecificationsPlayer("Scorpion", 100, "http://reactmarathon-api.herokuapp.com/assets/scorpion.gif", ["flamberg", "bastard"]);
+const player2 = new CreateSpecificationsPlayer("Kung Lao", 70, "http://reactmarathon-api.herokuapp.com/assets/liukang.gif", ["claymore"]);
+// добавил вручную эти параметры так как, они нужны только для опрелеление позицияи персонажа, а это в дальнейшем будет выбиратся на экране
+player1.player = 1
+player2.player = 2
+
+function createPlayer({name, img, player}) {
+    const $divParent = createTag('div', `player${player}`);
+    const $divProgressbar = createTag('div', "progressbar ");
+    const $divCharacter = createTag('div', "character ");
+    const $divLite = createTag('div', 'life ', '', [["width", "100%"]]);
+    const $img = createTag('img', '', '', '');
+    $img.setAttribute('src', img);
     $divProgressbar.appendChild($divLite);
-    $divProgressbar.appendChild(createTag('div','name ',name));
+    $divProgressbar.appendChild(createTag('div', 'name ', name));
     $divCharacter.appendChild($img);
     $divParent.appendChild($divProgressbar);
     $divParent.appendChild($divCharacter);
     return $divParent;
 }
-$arenas.appendChild(createPlayer('player1',player1));
-$arenas.appendChild(createPlayer('player2',player2));
+
+function fightPlayer({hp, remnantsOfLife, player, changeHP, alive, name}) {
+    changeHP(randomInteger(5, 15))
+    const hpPlayer = document.querySelector(`.player${player} .life`);
+    hpPlayer.style.width = `${Math.round(remnantsOfLife * 100 / hp)}%`;
+    if (!alive) {
+        $buttonRandom.setAttribute("disabled", true);
+        hpPlayer.style.width = `${Math.round(remnantsOfLife * 100 / hp)}%`;
+        return alive;
+        // такой возврат пришлось сделать, так как не додумался синхронизоровать даные которые отдает обьект, на одно
+        // действие отстает
+    }
+    return alive;
+}
+$buttonRandom.addEventListener('click', (e) => {
+    $buttonRandom.textContent = 'Random';
+    // вышел таким спосбом, все равно if будет прогонять обе функции для сравнения, как толко получит false значит
+    // кто то проиграл
+    if (fightPlayer(player1) !== fightPlayer(player2)) {
+        const $playerWin = document.createElement('div');
+        $playerWin.classList.add('loseTitle')
+        $playerWin.textContent = `${player1.alive ? player1.name : player2.name} Выграл!`;
+        $arenas.appendChild($playerWin);
+    }
+
+})
+
+$arenas.appendChild(createPlayer(player1));
+$arenas.appendChild(createPlayer(player2));
