@@ -20,7 +20,7 @@ function CreateSpecificationsPlayer(name, hp, img, weapon = []) {
     this.alive = true;
     this.remnantsOfLife = +hp
 
-    this.changeHP = (hit) => {
+    this.changeHP = (hit=0) => {
         this.remnantsOfLife = this.remnantsOfLife - hit
         if (this.remnantsOfLife <= 0) {
             this.alive = false;
@@ -74,15 +74,14 @@ function fightPlayer({hp, remnantsOfLife, player, changeHP, alive, name}) {
     changeHP(randomInteger(5, 15))
     const hpPlayer = document.querySelector(`.player${player} .life`);
     hpPlayer.style.width = `${Math.round(remnantsOfLife * 100 / hp)}%`;
-    console.log(`${name}  ${Math.round(remnantsOfLife * 100 / hp)}%`);
     if (!alive) {
         $buttonRandom.setAttribute("disabled", true);
         hpPlayer.style.width = `${Math.round(remnantsOfLife * 100 / hp)}%`;
-        return hpPlayer.style.width === '0%' ? false : true;
+        return alive;
         // такой возврат пришлось сделать, так как не додумался синхронизоровать даные которые отдает обьект, на одно
         // действие отстает
     }
-
+    return alive;
 }
 $buttonRandom.addEventListener('click', (e) => {
     $buttonRandom.textContent = 'Random';
